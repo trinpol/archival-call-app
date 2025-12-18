@@ -1,20 +1,50 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Archival Designs - Call QA Platform
 
-# Run and deploy your AI Studio app
+An AI-powered coaching intelligence platform built with React and the Google Gemini API.
 
-This contains everything you need to run your app locally.
+## Features
+- **Audio Analysis**: Instant transcription and diarization.
+- **SOP Compliance**: Automated auditing for brand identity, NATO alphabet usage, and routing protocols.
+- **Sentiment Mapping**: Visualizes customer engagement throughout the call.
+- **Coaching Cards**: Actionable feedback based on predefined SOPs.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1vG01bPlBFSp8LyuPmOgjHVts17bdqbZV
+## Setup Instructions
 
-## Run Locally
+1. **Clone the repository**:
+   ```bash
+   git clone <your-repo-url>
+   cd archival-designs-qa
+   ```
 
-**Prerequisites:**  Node.js
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
+3. **Configure Environment Variables**:
+   Create a `.env` file in the root directory:
+   ```env
+   VITE_API_KEY=your_gemini_api_key_here
+   ```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+4. **Run development server**:
+   ```bash
+   npm run dev
+   ```
+
+## Deployment to Vercel
+
+1. Push this code to a GitHub repository.
+2. Go to [Vercel](https://vercel.com) and click "Add New" -> "Project".
+3. Import your GitHub repository.
+4. In the **Environment Variables** section, add:
+   - Key: `API_KEY`
+   - Value: `your_gemini_api_key_here`
+5. Click **Deploy**.
+
+## Tech Stack
+- **React 19**
+- **Vite** (Build Tool)
+- **Google Gemini API** (via @google/genai)
+- **Tailwind CSS** (Styling)
+- **Recharts** (Data Visualization)
