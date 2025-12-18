@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { analyzeAudio } from './services/geminiService';
-import { AnalysisResult, AppState } from './types';
-import Dashboard from './components/Dashboard';
-import { UploadIcon } from './components/Icons';
+import { analyzeAudio } from './services/geminiService.ts';
+import { AnalysisResult, AppState } from './types.ts';
+import Dashboard from './components/Dashboard.tsx';
+import { UploadIcon } from './components/Icons.tsx';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>('idle');
@@ -16,6 +16,7 @@ const App: React.FC = () => {
 
     if (!file.type.startsWith('audio/')) {
       setErrorMsg('Please upload a valid audio file (MP3, WAV, etc.)');
+      setAppState('error');
       return;
     }
 
@@ -30,7 +31,7 @@ const App: React.FC = () => {
     } catch (error) {
       console.error(error);
       setAppState('error');
-      setErrorMsg('Failed to analyze audio. Please check your API key and try again.');
+      setErrorMsg('Failed to analyze audio. Please check your network connection and try again.');
     }
   };
 
@@ -41,12 +42,10 @@ const App: React.FC = () => {
     setErrorMsg('');
   };
 
-  // View: Dashboard
   if (appState === 'complete' && analysisData) {
     return <Dashboard data={analysisData} audioFile={audioFile} onReset={handleReset} />;
   }
 
-  // View: Loading/Processing
   if (appState === 'analyzing') {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
@@ -59,21 +58,19 @@ const App: React.FC = () => {
             </div>
           </div>
           <h2 className="text-2xl font-bold text-slate-800 mb-2">Analyzing Paulo's Call</h2>
-          <p className="text-slate-500 mb-6">
-            Checking SOP compliance: NATO alphabet usage, Modification Request routing, and brand consistency.
+          <p className="text-slate-500 mb-6 leading-relaxed">
+            Parsing audio for SOP compliance: checking NATO alphabet usage, Modification Request routing, and brand consistency.
           </p>
           <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-            <div className="h-full bg-orange-600 animate-pulse rounded-full w-2/3"></div>
+            <div className="h-full bg-orange-600 animate-pulse rounded-full w-2/3 transition-all duration-1000"></div>
           </div>
         </div>
       </div>
     );
   }
 
-  // View: Upload / Idle / Error
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-orange-50 flex flex-col">
-       {/* Hero Section */}
        <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12">
         <div className="max-w-3xl w-full text-center space-y-8">
           
@@ -87,7 +84,7 @@ const App: React.FC = () => {
               Archival Designs <span className="text-orange-600">QA Platform</span>
             </h1>
             <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-              Upload calls for instant SOP verification. We check for NATO alphabet usage, Mod Request routing, and correct branding.
+              Automated sales coaching intelligence. Upload calls for instant SOP verification and performance insights.
             </p>
           </div>
 
@@ -104,7 +101,7 @@ const App: React.FC = () => {
                   
                   <div className="text-center">
                     <h3 className="text-xl font-semibold text-slate-800 mb-2">Upload Call Recording</h3>
-                    <p className="text-sm text-slate-500">Supported formats: MP3, WAV, M4A</p>
+                    <p className="text-sm text-slate-500">Supported formats: MP3, WAV, M4A, AAC</p>
                   </div>
 
                   <label className="relative">
@@ -121,31 +118,29 @@ const App: React.FC = () => {
                 </div>
              </div>
              {appState === 'error' && (
-                <div className="mt-6 p-4 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100 flex items-center justify-center gap-2 animate-fade-in">
+                <div className="mt-6 p-4 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100 flex items-center justify-center gap-2">
                   <span className="font-semibold">Error:</span> {errorMsg}
                 </div>
              )}
           </div>
 
-          {/* Features Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-12 border-t border-slate-200/60">
             <div className="text-center space-y-2">
               <div className="text-2xl mb-2">📝</div>
-              <h4 className="font-semibold text-slate-800">SOP Verification</h4>
-              <p className="text-sm text-slate-500">Checks for NATO alphabet & Mod Request routing.</p>
+              <h4 className="font-semibold text-slate-800">SOP Adherence</h4>
+              <p className="text-sm text-slate-500">AI audits for NATO alphabet and correct routing.</p>
             </div>
             <div className="text-center space-y-2">
               <div className="text-2xl mb-2">💬</div>
-              <h4 className="font-semibold text-slate-800">Diarized Transcript</h4>
-              <p className="text-sm text-slate-500">Separates Paulo from the Customer automatically.</p>
+              <h4 className="font-semibold text-slate-800">Smart Transcript</h4>
+              <p className="text-sm text-slate-500">Auto-diarization of agent and customer speech.</p>
             </div>
             <div className="text-center space-y-2">
               <div className="text-2xl mb-2">📊</div>
-              <h4 className="font-semibold text-slate-800">Engagement</h4>
-              <p className="text-sm text-slate-500">Track customer sentiment during the call.</p>
+              <h4 className="font-semibold text-slate-800">Sentiment Analysis</h4>
+              <p className="text-sm text-slate-500">Visualize customer engagement across the call.</p>
             </div>
           </div>
-
         </div>
        </div>
     </div>

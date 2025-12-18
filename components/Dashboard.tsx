@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { AnalysisResult, TranscriptItem, CoachingData, SentimentPoint } from '../types';
-import { CheckCircleIcon, AlertCircleIcon, TrendingUpIcon, MicIcon, PlayIcon, PauseIcon } from './Icons';
+import { AnalysisResult, TranscriptItem, CoachingData, SentimentPoint } from '../types.ts';
+import { CheckCircleIcon, AlertCircleIcon, TrendingUpIcon, MicIcon, PlayIcon, PauseIcon } from './Icons.tsx';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 interface DashboardProps {
@@ -23,7 +23,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, audioFile, onReset }) => {
           </div>
           <button 
             onClick={onReset}
-            className="text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-md hover:bg-slate-100 transition-colors"
+            className="text-sm font-medium text-slate-600 hover:text-slate-900 px-4 py-2 rounded-md hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200"
           >
             New Analysis
           </button>
@@ -37,7 +37,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, audioFile, onReset }) => {
         <div className="mb-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h2 className="text-lg font-semibold text-slate-800 mb-2">Executive Summary</h2>
-            <p className="text-slate-600 leading-relaxed">{data.coaching.summary}</p>
+            <p className="text-slate-600 leading-relaxed text-sm">{data.coaching.summary}</p>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-center">
             <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Call Recording</h2>
@@ -47,7 +47,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, audioFile, onReset }) => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
           
-          {/* Left Column: Transcript (Scrollable) */}
+          {/* Left Column: Transcript */}
           <div className="lg:col-span-5 flex flex-col h-[600px] lg:h-[800px] bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-4 border-b border-slate-100 flex items-center gap-2 bg-slate-50/50">
               <MicIcon className="w-4 h-4 text-slate-500" />
@@ -99,17 +99,15 @@ const Dashboard: React.FC<DashboardProps> = ({ data, audioFile, onReset }) => {
   );
 };
 
-// Sub-components
-
 const TranscriptRow: React.FC<{ item: TranscriptItem }> = ({ item }) => {
-  const isRep = item.speaker === 'Paulo';
+  const isRep = item.speaker.toLowerCase().includes('paulo');
   return (
     <div className={`flex flex-col ${isRep ? 'items-end' : 'items-start'}`}>
       <div className={`flex items-center gap-2 mb-1 ${isRep ? 'flex-row-reverse' : 'flex-row'}`}>
-        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{item.speaker}</span>
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{item.speaker}</span>
         <span className="text-[10px] text-slate-400 font-mono">{item.timestamp}</span>
       </div>
-      <div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+      <div className={`max-w-[90%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
         isRep 
           ? 'bg-orange-600 text-white rounded-tr-sm' 
           : 'bg-slate-100 text-slate-800 rounded-tl-sm'
@@ -133,20 +131,21 @@ const SentimentChart: React.FC<{ data: SentimentPoint[] }> = ({ data }) => {
         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
         <XAxis 
           dataKey="time" 
-          tick={{fontSize: 12, fill: '#64748b'}} 
+          tick={{fontSize: 10, fill: '#64748b'}} 
           tickLine={false}
           axisLine={false}
-          minTickGap={30}
+          minTickGap={20}
         />
         <YAxis 
           domain={[0, 100]} 
-          tick={{fontSize: 12, fill: '#64748b'}} 
+          tick={{fontSize: 10, fill: '#64748b'}} 
           tickLine={false}
           axisLine={false}
         />
         <Tooltip 
           contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-          itemStyle={{ color: '#1e293b', fontWeight: 600 }}
+          itemStyle={{ color: '#ea580c', fontWeight: 600 }}
+          labelStyle={{ color: '#64748b', marginBottom: '4px', fontSize: '10px' }}
         />
         <Area 
           type="monotone" 
@@ -155,6 +154,7 @@ const SentimentChart: React.FC<{ data: SentimentPoint[] }> = ({ data }) => {
           strokeWidth={3}
           fillOpacity={1} 
           fill="url(#colorScore)" 
+          animationDuration={1500}
         />
       </AreaChart>
     </ResponsiveContainer>
@@ -164,7 +164,7 @@ const SentimentChart: React.FC<{ data: SentimentPoint[] }> = ({ data }) => {
 const CoachingCard: React.FC<{ type: 'strength' | 'weakness', title: string, points: string[] }> = ({ type, title, points }) => {
   const isStrength = type === 'strength';
   return (
-    <div className={`rounded-xl border p-5 ${
+    <div className={`rounded-xl border p-5 transition-all duration-300 hover:shadow-md ${
       isStrength ? 'bg-emerald-50/50 border-emerald-100' : 'bg-red-50/50 border-red-100'
     }`}>
       <div className="flex items-center gap-2 mb-4">
@@ -177,13 +177,16 @@ const CoachingCard: React.FC<{ type: 'strength' | 'weakness', title: string, poi
       </div>
       <ul className="space-y-3">
         {points.map((point, idx) => (
-          <li key={idx} className="flex gap-3 text-sm text-slate-700">
+          <li key={idx} className="flex gap-3 text-sm text-slate-700 leading-snug">
             <span className={`mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 ${
               isStrength ? 'bg-emerald-500' : 'bg-red-500'
             }`} />
-            <span className="leading-snug">{point}</span>
+            <span>{point}</span>
           </li>
         ))}
+        {points.length === 0 && (
+          <li className="text-slate-400 italic text-xs">No data points identified.</li>
+        )}
       </ul>
     </div>
   );
@@ -236,6 +239,7 @@ const AudioPlayer: React.FC<{ file: File }> = ({ file }) => {
   };
 
   const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return "0:00";
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60);
     return `${m}:${s < 10 ? '0' : ''}${s}`;
@@ -252,7 +256,7 @@ const AudioPlayer: React.FC<{ file: File }> = ({ file }) => {
       />
       <button 
         onClick={togglePlay}
-        className="w-10 h-10 flex items-center justify-center bg-slate-900 hover:bg-slate-800 text-white rounded-full transition-colors flex-shrink-0"
+        className="w-10 h-10 flex items-center justify-center bg-slate-900 hover:bg-slate-800 text-white rounded-full transition-colors flex-shrink-0 shadow-lg"
       >
         {isPlaying ? <PauseIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4 ml-0.5" />}
       </button>
@@ -261,6 +265,7 @@ const AudioPlayer: React.FC<{ file: File }> = ({ file }) => {
           type="range" 
           min="0" 
           max="100" 
+          step="0.1"
           value={progress || 0} 
           onChange={handleSeek}
           className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-orange-600"

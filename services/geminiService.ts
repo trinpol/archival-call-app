@@ -1,8 +1,8 @@
-import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { AnalysisResult } from "../types";
+import { GoogleGenAI, Type } from "@google/genai";
+import { AnalysisResult } from "../types.ts";
 
-// Initialize the client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Initialize the client with the environment variable
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
 
 const SOP_CONTEXT = `
 CONTEXT:
@@ -13,21 +13,21 @@ SOP SUMMARY:
 1. **Core Goal**: Route plan changes to the online "Modification Request form" for a free estimate in 1-3 business days. Do NOT take detailed modification notes over the phone.
 2. **Email Capture**: MUST use NATO phonetic alphabet (Alpha, Bravo, Charlie...) to verify spelling. Must confirm domain (e.g., @gmail.com).
 3. **Greetings**:
-   - "Thanks for calling Archival Designs, this is Paulo. Are you calling about a specific plan, or exploring options?" (Or swap brand name).
+   - "Thanks for calling Archival Designs, this is Paulo. Are you calling about a specific plan, or exploring options?" (Or swap brand name depending on context).
 4. **Scenarios**:
    - **Discount**: Ask for prior order #/name.
    - **Downsize**: Direct to Mod Request form, ask for target sq footage.
    - **Re-buy**: Handle re-purchase + Mod link.
-5. **Do Not**: Spend 20+ mins taking notes. Promise timelines without scope review. Switch brand identity.
+5. **Do Not**: Spend 20+ mins taking notes. Promise timelines without scope review. Switch brand identity mid-call.
 
 EVALUATION CRITERIA:
-- Did Paulo use the NATO alphabet?
+- Did Paulo use the NATO alphabet for email?
 - Did he avoid taking detailed notes and instead push the Mod Request form?
 - Did he promise the correct SLA (1-3 business days)?
 - Did he identify the correct brand (Archival, Garrell, or Standard)?
 `;
 
-const analysisSchema: Schema = {
+const analysisSchema = {
   type: Type.OBJECT,
   properties: {
     transcript: {
@@ -35,7 +35,7 @@ const analysisSchema: Schema = {
       items: {
         type: Type.OBJECT,
         properties: {
-          speaker: { type: Type.STRING, enum: ["Paulo", "Customer"] },
+          speaker: { type: Type.STRING },
           text: { type: Type.STRING },
           timestamp: { type: Type.STRING, description: "Format MM:SS" },
         },
@@ -61,16 +61,16 @@ const analysisSchema: Schema = {
         strengths: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
-          description: "3 specific things Paulo did well based on the Archival Designs SOP (e.g., used NATO alphabet, correctly routed to Mod form).",
+          description: "Specific things Paulo did well based on SOP.",
         },
         missedOpportunities: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
-          description: "3 specific SOP violations (e.g., failed to verify domain, took detailed notes instead of sending link, wrong greeting).",
+          description: "Specific SOP violations or missed cues.",
         },
         summary: {
             type: Type.STRING,
-            description: "A brief executive summary identifying the Brand mentioned, the Plan Number discussed, and the call outcome."
+            description: "A brief executive summary identifying Brand, Plan Number, and outcome."
         }
       },
       required: ["strengths", "missedOpportunities", "summary"],
@@ -80,10 +80,15 @@ const analysisSchema: Schema = {
 };
 
 export const analyzeAudio = async (file: File): Promise<AnalysisResult> => {
+  if (!process.env.API_KEY) {
+    throw new Error("API Key is missing. Please ensure process.env.API_KEY is configured.");
+  }
+
   try {
     const base64Data = await fileToGenerativePart(file);
 
-    const modelId = "gemini-2.5-flash"; // Good for audio understanding
+    // Using gemini-3-flash-preview as per the updated guidelines for basic/general tasks
+    const modelId = "gemini-3-flash-preview"; 
     
     const prompt = `
       ${SOP_CONTEXT}
@@ -92,8 +97,8 @@ export const analyzeAudio = async (file: File): Promise<AnalysisResult> => {
       
       Perform the following tasks:
       1. Generate a diarized transcript.
-      2. Analyze the sentiment/engagement.
-      3. Create a coaching card evaluating Paulo STRICTLY against the provided SOP.
+      2. Analyze the sentiment/engagement of the Customer throughout the call.
+      3. Create a coaching card evaluating Paulo STRICTLY against the provided SOP rules.
       
       Return the data strictly in JSON format matching the provided schema.
     `;
@@ -116,11 +121,11 @@ export const analyzeAudio = async (file: File): Promise<AnalysisResult> => {
     });
 
     const text = response.text;
-    if (!text) throw new Error("No response from AI");
+    if (!text) throw new Error("The AI returned an empty response.");
 
     return JSON.parse(text) as AnalysisResult;
   } catch (error) {
-    console.error("Error analyzing audio:", error);
+    console.error("Error analyzing audio with Gemini:", error);
     throw error;
   }
 };
@@ -130,11 +135,13 @@ const fileToGenerativePart = (file: File): Promise<string> => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
-      // Remove the data URL prefix (e.g., "data:audio/mp3;base64,")
       const base64Data = base64String.split(",")[1];
       resolve(base64Data);
     };
-    reader.onerror = reject;
+    reader.onerror = (err) => {
+      console.error("FileReader error:", err);
+      reject(new Error("Failed to read the audio file."));
+    };
     reader.readAsDataURL(file);
   });
 };
