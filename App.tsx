@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { analyzeAudio } from './services/geminiService.ts';
-import { AnalysisResult, AppState } from './types.ts';
-import Dashboard from './components/Dashboard.tsx';
-import { UploadIcon } from './components/Icons.tsx';
+import { analyzeAudio } from './services/geminiService';
+import { AnalysisResult, AppState } from './types';
+import Dashboard from './components/Dashboard';
+import { UploadIcon } from './components/Icons';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>('idle');

@@ -24,7 +24,7 @@ An AI-powered coaching intelligence platform built with React and the Google Gem
 3. **Configure Environment Variables**:
    Create a `.env` file in the root directory:
    ```env
-   VITE_API_KEY=your_gemini_api_key_here
+   API_KEY=your_gemini_api_key_here
    ```
 
 4. **Run development server**:
