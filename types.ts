@@ -1,5 +1,5 @@
 export interface TranscriptItem {
-  speaker: 'Salesperson' | 'Prospect';
+  speaker: string;
   text: string;
   timestamp: string;
 }
