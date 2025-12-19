@@ -76,14 +76,17 @@ const analysisSchema = {
 
 export const analyzeAudio = async (file: File): Promise<AnalysisResult> => {
   const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    throw new Error("Missing Gemini API Key. Please configure API_KEY in your environment variables.");
+  
+  // Strict check for valid API key structure/placeholder
+  if (!apiKey || apiKey === 'your_gemini_api_key_here' || apiKey.length < 10) {
+    throw new Error("Invalid or missing Gemini API Key. Please ensure API_KEY is set correctly in your environment variables.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
 
   try {
     const base64Data = await fileToGenerativePart(file);
+    // Using gemini-3-flash-preview for fast and high-quality multimodal analysis
     const modelId = "gemini-3-flash-preview"; 
     
     const prompt = `
@@ -91,7 +94,7 @@ export const analyzeAudio = async (file: File): Promise<AnalysisResult> => {
       Analyze the audio of this sales call. 
       Identify the speakers (Paulo vs Customer).
       Evaluate Paulo strictly against the SOP.
-      Provide engagement sentiment data.
+      Provide engagement sentiment data as requested in the schema.
     `;
 
     const response = await ai.models.generateContent({
@@ -109,13 +112,23 @@ export const analyzeAudio = async (file: File): Promise<AnalysisResult> => {
     });
 
     const text = response.text;
-    if (!text) throw new Error("The AI returned an empty response.");
+    if (!text) throw new Error("The AI returned an empty response. This might be due to a safety filter or invalid audio data.");
 
-    return JSON.parse(text) as AnalysisResult;
+    try {
+      return JSON.parse(text) as AnalysisResult;
+    } catch (parseError) {
+      console.error("JSON Parse Error. Raw text:", text);
+      throw new Error("Failed to parse analysis result. The model output was not valid JSON.");
+    }
   } catch (error: any) {
     console.error("Gemini Analysis Error:", error);
-    // Extract meaningful error message if possible
-    const message = error?.message || "Unknown error occurred during analysis.";
+    
+    // Check for specific known error codes
+    if (error?.message?.includes('400') || error?.message?.includes('INVALID_ARGUMENT')) {
+        throw new Error("The API key provided is invalid. Please double-check your API_KEY setting in the deployment dashboard.");
+    }
+    
+    const message = error?.message || "An unexpected error occurred during audio analysis.";
     throw new Error(message);
   }
 };
