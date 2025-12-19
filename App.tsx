@@ -15,7 +15,7 @@ const App: React.FC = () => {
     if (!file) return;
 
     if (!file.type.startsWith('audio/')) {
-      setErrorMsg('Please upload a valid audio file (MP3, WAV, etc.)');
+      setErrorMsg('Invalid file format. Please upload an audio file (MP3, WAV, M4A).');
       setAppState('error');
       return;
     }
@@ -28,10 +28,10 @@ const App: React.FC = () => {
       const result = await analyzeAudio(file);
       setAnalysisData(result);
       setAppState('complete');
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       setAppState('error');
-      setErrorMsg('Failed to analyze audio. Please check your network connection and try again.');
+      setErrorMsg(error.message || 'Failed to analyze audio. Please try again.');
     }
   };
 
@@ -118,8 +118,11 @@ const App: React.FC = () => {
                 </div>
              </div>
              {appState === 'error' && (
-                <div className="mt-6 p-4 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100 flex items-center justify-center gap-2">
-                  <span className="font-semibold">Error:</span> {errorMsg}
+                <div className="mt-6 p-4 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100 flex flex-col items-center justify-center gap-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold">Error</span>
+                  </div>
+                  <p className="opacity-90">{errorMsg}</p>
                 </div>
              )}
           </div>
