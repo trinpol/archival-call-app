@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { AnalysisResult } from "../types.ts";
+import { AnalysisResult } from "../types";
 
 // Initialize the client with the environment variable
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
